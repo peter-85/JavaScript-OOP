@@ -9,8 +9,17 @@
 */
 
 function solve() {
-	return function sum() {
-	}
+
+    return function sum(array) {
+        if (array.length === 0) {
+            return null;
+        }
+        if (array.some(x => isNaN(x))) {
+            throw 'Something is wrong';
+        }
+        let sum = array.reduce((a, b) => (+a) + (+b));
+        return sum;
+    }
 }
 
 module.exports = solve;
