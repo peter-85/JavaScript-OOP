@@ -11,7 +11,7 @@ function solve() {
     }
 
     function getShoppingCart() {
-        let products = [];
+        let products = []; // Masiva se syzdava samo 1 pyt
         return {
             products: products,
             add: function(product) {
@@ -30,7 +30,7 @@ function solve() {
                         return this; // Polzvame return vmesto break za da izlezem ot funkciqta, break izliza ot cikyla
                     }
                 }
-                throw new Error('klgjfd');
+                throw new Error('There is no such a product');
             },
             showCost: function() {
                 let sum = 0;
@@ -40,7 +40,14 @@ function solve() {
                 return sum;
             },
             showProductTypes: function() {
-                return produc.map(x => x.productType).sort().filter((x, index, arr) => x !== arr[index - 1]);
+                return products.map(x => x.productType).sort().filter((x, index, arr) => x !== arr[index - 1]);
+                // Polzvame filter s 3 argumenta, zastoto mi trqbvat indeksa i masiva
+            },
+            getInfo: function() {
+                {
+
+                }
+
             }
         }
     }
