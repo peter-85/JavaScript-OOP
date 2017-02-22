@@ -90,11 +90,9 @@ function solve() {
             return true;
         }
         search(pattern) {
-            return this._playlists.filter(p => {
-                p._playable.filter(playable => {
-                    (playable.title.indexOf(pattern)) > (-1);
-                });
-            });
+            return this._playlists.filter(p => p.listPlayables().some(playable => {
+                return (playable.title.indexOf(pattern) > -1);
+            })).map(playlist => ({ id: playlist.id, name: playlist.name }));
         }
     }
 
@@ -145,6 +143,8 @@ function solve() {
             }
         }
         listPlayables(page, size) {
+            page = page || 0;
+            size = size || 9007199254740992;
             if (typeof page === 'undefined' ||
                 typeof size === 'undefined' ||
                 page < 0 ||
@@ -254,7 +254,7 @@ module.exports = solve;
 
 let play = solve();
 let carPlayer = play.getPlayer('Car')
-console.log(carPlayer);
+    //console.log(carPlayer);
 let playlist1 = play.getPlaylist('Cool');
 let playlist2 = play.getPlaylist('Green');
 let playlist3 = play.getPlaylist('playlist3');
@@ -277,4 +277,4 @@ playlist2.addPlayable(audio3);
 playlist2.addPlayable(audio4);
 playlist2.addPlayable(audio5);
 //console.log(playlist2);
-console.log(carPlayer.search('John'));
+console.log(carPlayer.search('green'));
