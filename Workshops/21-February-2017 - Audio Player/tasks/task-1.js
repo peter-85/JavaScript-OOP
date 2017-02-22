@@ -89,6 +89,13 @@ function solve() {
             }
             return true;
         }
+        search(pattern) {
+            return this._playlists.filter(p => {
+                p._playable.filter(playable => {
+                    (playable.title.indexOf(pattern)) > (-1);
+                });
+            });
+        }
     }
 
     class PlayList {
@@ -248,14 +255,26 @@ module.exports = solve;
 let play = solve();
 let carPlayer = play.getPlayer('Car')
 console.log(carPlayer);
-let playlist1 = play.getPlaylist('playlist1');
-let playlist2 = play.getPlaylist('playlist2');
+let playlist1 = play.getPlaylist('Cool');
+let playlist2 = play.getPlaylist('Green');
 let playlist3 = play.getPlaylist('playlist3');
 carPlayer.addPlaylist(playlist1);
 carPlayer.addPlaylist(playlist2);
 carPlayer.addPlaylist(playlist3);
-console.log(carPlayer);
+//console.log(carPlayer);
 carPlayer.removePlaylist(playlist1);
-console.log(carPlayer);
+//console.log(carPlayer);
 
-let array = [0, 1, 2, 3];
+let audio1 = play.getAudio('They are green', 'Someone', 4);
+let audio2 = play.getAudio('I am Batman', 'Some', 5);
+playlist1.addPlayable(audio1);
+playlist1.addPlayable(audio2);
+//console.log(playlist1);
+let audio3 = play.getAudio('Green they are', 'Some', 5);
+let audio4 = play.getAudio('Green is beautiful', 'Sock', 3);
+let audio5 = play.getAudio('To the green and beyond', 'Sony', 2);
+playlist2.addPlayable(audio3);
+playlist2.addPlayable(audio4);
+playlist2.addPlayable(audio5);
+//console.log(playlist2);
+console.log(carPlayer.search('John'));
