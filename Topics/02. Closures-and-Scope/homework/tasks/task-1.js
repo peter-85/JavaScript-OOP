@@ -21,7 +21,7 @@
  V	If something is not valid - throw Error
  */
 function solve() {
-    var library = (function() {
+    var library =  (function() {
         var books = [];
         var categories = [];
 
@@ -34,11 +34,21 @@ function solve() {
                     return book.category === optional.category;
                 });
             } else if (optional && optional.author) {
-                result = books.filter(function(book) {
-                    return book.author === optional.author;
-                });
+
+                // ВАРИАНТ 1 на синтаксис
+                result = books.filter(b => b.author === optional.author);
+
+                // ВАРИАНТ 2 на синтаксис
+                //result = books.filter(b => { return b.author === optional.author; });
+
+                //// ВАРИАНТ 3 на синтаксис
+                //result = books.filter(function(book) {
+                //return book.author === optional.author;
+                //});
+
+                // И ТРИТЕ ВАРИАНТА РАБОТЯТ - ТЕСТВАЛ СЪМ ГИ
             }
-            result = result.sort(function(a, b) { return a.ID - b.ID; });
+            result = result.sort((a, b) => (a.ID - b.ID));
             return result;
         }
 
@@ -120,6 +130,12 @@ var book1 = {
     author: 'Osherove',
     category: 'c#'
 };
+var book2 = {
+    title: 'Razkazi za zhivota',
+    isbn: '5456897456355',
+    author: 'Peter Bukai',
+    category: 'life'
+};
 
 var testCategory = {
     category: 'javascript'
@@ -132,7 +148,10 @@ var testAuthor = {
 var library = solve();
 library.books.add(book);
 library.books.add(book1);
+library.books.add(book2);
 
 console.log(library.books.list());
 //console.log(library.books.list(testAuthor));
-console.log(library.categories.list());
+//console.log(library.categories.list());
+//console.log(library.books.list());
+//console.log(typeof library.books.list);

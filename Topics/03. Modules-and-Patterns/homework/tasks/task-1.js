@@ -22,8 +22,10 @@
       V Names start with an upper case letter
       V All other symbols in the name (if any) are lowercase letters
     V Generates a unique student ID and returns it
+
   * Create method getAllStudents that returns an array of students in the format:
     * {firstname: 'string', lastname: 'string', id: StudentID}
+    
   * Create method submitHomework
     * Accepts studentID and homeworkID
       * homeworkID 1 is for the first presentation
@@ -45,43 +47,103 @@
 */
 
 function solve() {
+    var courseTitle = '',
+        presentations = [],
+        //За да са private - само веднъж се извикват
+        students = [];
     let Course = {
+
+        //courseTitle: '', 
+        //presentations: [],
+        //students: [],
 
         init: function(title, presentations) {
             validateTitle(title);
             validatePresentations(presentations);
 
-            this.title = title; //Защо се ползва this? Трябва ли?
+            this.courseTitle = title;
             this.presentations = presentations;
             this.students = [];
 
-            return this;
+            return this; //Vrysta cqlata informaciq v obekta v sluchaq - courseTitle, presentations, students  
+            // kakto i drugite metodi v obekta Course
         },
 
         addStudent: function(name) {
-            let regex = /[A-Z]{1}[a-z]*/g,
-                validName = name.match(regex);
+            let regex = /[A-Z]{1}[a-z]*/g;
+            let validName = name.match(regex);
             if (validName === null) {
-                throw new Error('The name is not in the format! "Firstname Lastname"');
+                throw new Error('The name is not in the format! \"Firstname Lastname\"');
             }
             if (validName.length !== 2) {
-                throw new Error('The name is not in two parts "Firstname Lastname"');
+                throw new Error('The name is not in two parts \"Firstname Lastname\"');
             }
             let id = this.students.length + 1;
             let student = {
                 firstName: validName[0],
                 lastName: validName[1],
-                id: id
+                id: id,
+                homework: [],
+                examScore: 0,
+                finalScore: 0
             }
             this.students.push(student);
             return id;
         },
 
         getAllStudents: function() {
-            return this.students;
+            let allStudents = [];
+            this.students.forEach(
+                x => allStudents.push({ firstname: x.firstName, lastname: x.lastName, id: x.id })
+            );
+            return allStudents; // Защо ако напишем само / return this.students/ не излиза теста
         },
-        submitHomework: function(studentID, homeworkID) {},
-        pushExamResults: function(results) {},
+
+        submitHomework: function(studentID, homeworkID) {
+            validateID(studentID);
+            validateID(homeworkID);
+            if (studentID > this.students.length || studentID < 1) {
+                throw new Error('Enter a valid student ID');
+            }
+            if (homeworkID > this.presentations.length || homeworkID < 1) {
+                throw new Error('Enter a valid homework ID');
+            }
+            this.students[studentID - 1].homework.push(homeworkID);
+            return this;
+        },
+        /*
+         * Create method pushExamResults
+         * Accepts an array of items in the format {StudentID: ..., Score: ...}-
+         * StudentIDs which are not listed get 0 points-
+         * Throw if there is an invalid StudentID-
+         * Throw if same StudentID is given more than once ( he tried to cheat (: )
+         * Throw if Score is not a number*/
+        pushExamResults: function(results) {
+
+            for (let i = 0; i < results.length; i += 1) {
+                let currentStudentID = results[i].StudentID,
+                    currentStudentScore = results[i].Score;
+
+                currentStudentID = +currentStudentID;
+                currentStudentScore = +currentStudentScore;
+                validateID(currentStudentID);
+                if (!Array.isArray(results)) {
+                    throw new Error('Results must be an array');
+                }
+                if (!Number(currentStudentScore)) {
+                    throw new Error('Student score must be a valid number!');
+                }
+
+                if (currentStudentID > this.students.length || currentStudentID < 1) {
+                    throw new Error('Enter a valid student ID');
+                }
+                if (this.students[currentStudentID - 1].examScore !== 0) {
+                    throw new Error('The student is trying to cheat');
+                }
+                this.students[currentStudentID - 1].examScore = currentStudentScore;
+            }
+            return this;
+        },
         getTopStudents: function() {}
     };
 
@@ -110,6 +172,21 @@ function solve() {
             validateTitle(presentations[i]);
         }
     }
+
+    function validateID(id) {
+
+        if (!id) {
+            throw new Error('Invalid input for id!');
+        }
+
+        if (id % 1 !== 0) {
+            throw new Error('Id must be an integer number!');
+        }
+
+        if (!Number(id)) {
+            throw new Error('Id must be a number!');
+        }
+    }
     return Course;
 }
 
@@ -117,7 +194,21 @@ function solve() {
 module.exports = solve;
 
 // testing course
-let course = solve().init('js oop', ['lec1', 'lec2', 'lec3', 'lec4']);
-course.addStudent('Milko Kunev');
+let course = solve();
+course.init('jsoop', ['cSharp', 'Metalni', 'Masivni']);
+//console.log(course.addStudent('Milko Kunev'));
+course.addStudent('Peter Georgiev');
+course.addStudent('Vera Dimova');
+course.addStudent('Masha Genova');
+course.addStudent('Ivan Peshev');
+course.addStudent('Stoyan Manov');
+
+course.pushExamResults([{ StudentID: 1, Score: 5 }]);
+course.pushExamResults([{ StudentID: 2, Score: 4 }]);
+course.pushExamResults([{ StudentID: 3, Score: 6 }]);
+course.pushExamResults([{ StudentID: 4, Score: 4 }]);
+course.pushExamResults([{ StudentID: 5, Score: 3 }]);
+
 console.log(course);
-console.log(course.getAllStudents());
+//console.log(course.getAllStudents());
+console.log(solve().courseTitle = 'MASHINA');

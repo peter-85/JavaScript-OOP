@@ -14,366 +14,376 @@ function solve() {
         INVALID_SPELL_OBJECT: 'Passed objects must be Spell-like objects!',
         NOT_ENOUGH_MANA: 'Not enough mana!',
         TARGET_NOT_FOUND: 'Target not found!',
-        INVALID_BATTLE_PARTICIPANT: 'Battle participants must be ArmyUnit-like!',
-        INVALID_ALIGNMENT: 'Alignment must be good, neutral or evil!'
+        INVALID_BATTLE_PARTICIPANT: 'Battle participants must be ArmyUnit-like!'
+            // ZASTO KATO PREMESTIA ERROR MESSAGEES POD VALIDATOR PISHE CHE NE E DEFINIRANO - OTG: Tova ne e var a e obekt
     };
 
-    const validator = {
-        validateName(name) {
-            const invalidType = typeof name !== 'string';
-                
-            if(invalidType) {
+    const VALIDATOR = {
+        validateName(name) { // Този запис на методи е възможен от ES 2015
+            if (typeof name !== 'string') {
                 throw new Error(ERROR_MESSAGES.INVALID_NAME_TYPE);
             }
-
-            validator.validateRange(name.length, 2, 20, ERROR_MESSAGES.INVALID_NAME_LENGTH);
-
-            const invalidSymbols = /[^a-zA-Z ]/.test(name);
-
-            if(invalidSymbols) {
+            if (name.length < 2 || name.length > 20) {
+                throw new Error(ERROR_MESSAGES.INVALID_NAME_LENGTH);
+            }
+            if (name.match(/[^a-zA-Z ]/)) {
                 throw new Error(ERROR_MESSAGES.INVALID_NAME_SYMBOLS);
             }
         },
-        validateMana(manaValue) {
-            const invalidType = isNaN(manaValue),
-                invalidRange = manaValue < 0;
-
-            if (invalidType || invalidRange) {
+        validateMana(value) {
+            if (typeof value !== 'number' || value < 1 || Number.isNaN(value)) {
                 throw new Error(ERROR_MESSAGES.INVALID_MANA);
             }
         },
-        validateAlignment(alignment) {
-            const invalidAlignment = ['good', 'neutral', 'evil'].indexOf(alignment) === -1;
-
-            if (invalidAlignment) {
-                throw new Error(ERROR_MESSAGES.INVALID_ALIGNMENT);
-            }
-        },
-        validateRange(value, min, max, message) {
-            
-            if ((value < min) || (max < value)) {
-                throw new Error(message);
-            }
-        },
-        validateEffect(effect) {
-            const invalidType = typeof effect !== 'function';
-
-            if (invalidType || (effect.length !== 1)) {
+        validateEffect(func) {
+            if (typeof func !== 'function' || func.length !== 1) {
                 throw new Error(ERROR_MESSAGES.INVALID_EFFECT);
             }
         },
-        validateNonNull(value, message) {
-            if (value == null) {
-                throw new Error(message);
+        validateAllignment(value) {
+            if (value !== 'good' && value !== 'neutral' && value !== 'evil') {
+                throw new Error('Alignment must be good, neutral or evil!');
             }
         },
-        validateCastManaCost(mana, manaCost) {
-            if (mana < manaCost) {
-                throw new Error(ERROR_MESSAGES.NOT_ENOUGH_MANA);
+        validateDamage(x) {
+            if (x < 0 || x > 100 || Number.isNaN(x)) {
+                throw new Error(ERROR_MESSAGES.INVALID_DAMAGE);
             }
         },
-        validateBattleUnit(unit, message) {
-            const invalidDamage = isNaN(unit.damage),
-                invalidHealth = isNaN(unit.health),
-                invalidCount = isNaN(unit.count);
-
-            if(invalidDamage || invalidCount || invalidHealth) {
-                throw new Error(message);
+        validateHealth(x) {
+            if (x < 0 || x > 200 || Number.isNaN(x)) {
+                throw new Error(ERROR_MESSAGES.INVALID_HEALTH);
+            }
+        },
+        validatecount(x) {
+            if (x < 0 || ((x | 0) !== x) || Number.isNaN(x)) {
+                throw new Error(ERROR_MESSAGES.INVALID_COUNT);
+            }
+        },
+        validateSpeed(x) {
+            if ((x < 1) || (x > 100) || Number.isNaN(x)) {
+                throw new Error(ERROR_MESSAGES.INVALID_SPEED);
+            }
+        },
+        validateMana(x) {
+            if (typeof x !== 'number' || x <= 0 || Number.isNaN(x)) {
+                throw Error(ERROR_MESSAGES.INVALID_MANA);
             }
         }
+
     };
 
-    function *getIdGenerator() {
-        let id = 0;
+    var Id = (function() { // Generator na unikalno celochisleno chislo ot 1 nagore
+        var id = 0;
 
-		while(true) {
-			id += 1;
-			yield id;
-		}
-    }
+        function nextId() { // izvikvame -             this._id = Id.nextId();
+            id++;
+            return id;
+        }
+        return {
+            nextId: nextId
+        };
+    })();
 
-    const idGenerator = getIdGenerator();
-
-    const spell = {
-        get name() {
-            return this._name;
-        },
-        set name(value) {
-            validator.validateName(value);
-
-            this._name = value;
-        },
-        get manaCost() {
-            return this._manaCost;
-        },
-        set manaCost(value) {
-            validator.validateMana(value);
-            this._manaCost = value;
-        },
-        get effect() {
-            return this._effect;
-        },
-        set effect(value) {
-            validator.validateEffect(value);
-
-            this._effect = value;
-        },
-        init(name, manaCost, effect) {
+    class Spell {
+        constructor(name, manaCost, effect) {
             this.name = name;
             this.manaCost = manaCost;
             this.effect = effect;
-
-            return this;
         }
-    };
-
-    const unit = {
         get name() {
             return this._name;
-        },
-        set name(value) {
-            validator.validateName(value);
-            this._name = value;
-        },
-        get alignment() {
-            return this._alignment;
-        },
-        set alignment(value) {
-            validator.validateAlignment(value);
-            this._alignment = value;
-        },
-        init(name, alignment) {
+        }
+        set name(name) {
+            VALIDATOR.validateName(name);
+            this._name = name; // ZASTO TRQBVA DA SLAGAM DOLNA CHERTA - BEZ NEYA DAVA GRESHKA - 
+            //Защото this.name извиква пак setter и става безкрайна рекурсия. В конструктура реално извикваме setter name.
+        }
+        get manaCost() {
+            return this._manaCost;
+        }
+        set manaCost(value) {
+            VALIDATOR.validateMana(value);
+            this._manaCost = value;
+        }
+        get effect() {
+            return this._effect;
+        }
+        set effect(func) {
+            VALIDATOR.validateEffect(func);
+            this._effect = func;
+        }
+    }
+
+    class Unit {
+        constructor(name, alignment) {
             this.name = name;
             this.alignment = alignment;
+        }
+        get name() {
+            return this._name;
+        }
+        set name(name) {
+            VALIDATOR.validateName(name);
+            this._name = name;
+        }
+        get alignment() {
+            return this._alignment;
+        }
+        set alignment(value) {
+            VALIDATOR.validateAllignment(value);
+            this._alignment = value;
+        }
+
+    }
+
+    class ArmyUnit extends Unit {
+        constructor(name, alignment, damage, health, count, speed) {
+            super(name, alignment);
+            this._id = Id.nextId();
+            this.damage = damage;
+            this.health = health;
+            this.count = count;
+            this.speed = speed;
+        }
+        get id() {
+            return this._id;
+        }
+        get damage() {
+            return this._damage;
+        }
+        set damage(x) {
+            VALIDATOR.validateDamage(x);
+            this._damage = x;
+        }
+        get health() {
+            return this._health;
+        }
+        set health(x) {
+            VALIDATOR.validateHealth(x);
+            this._health = x;
+        }
+        get count() {
+            return this._count;
+        }
+        set count(x) {
+            VALIDATOR.validatecount(x);
+            this._count = x;
+        }
+        get speed() {
+            return this._speed;
+        }
+        set speed(x) {
+            VALIDATOR.validateSpeed(x);
+            this._speed = x;
+        }
+    }
+
+    class Commander extends Unit {
+        constructor(name, alignment, mana) {
+            super(name, alignment);
+            this.mana = mana;
+            this.spellbook = []; // Syzdavame kato za nacahalo prazen masiv t.k. v uslowieto  ne e spomenato drugo
+            this.army = [];
+        }
+        get mana() {
+            return this._mana;
+        }
+        set mana(x) {
+            VALIDATOR.validateMana(x);
+            this._mana = x;
+        }
+    }
+    const battleManagerData = {
+        commanderrs: [],
+        spells: [],
+        armyUnits: {},
+        armyUnitsQuery: []
+    }
+    Array.prototype.filterByProperty = function(query, propName) { // Variant II - function filterByProperty (arr,query, propName) {}
+        if (!query.hasOwnProperty(propName)) {
+            return this; //?? Kak razbirame che vrysta prazen masiv kogato niama syvpadenie
+        }
+        const value = query[propName]; // Ne raboti s query.propName - zastoto propName ne go vyzpriema kato promenliva
+        return this.filter(x => x[propName] === value);
+    }
+    const battlemanager = {
+        getCommander(name, alignment, mana) {
+            return new Commander(name, alignment, mana);
+        },
+        getArmyUnit(options) {
+            const unit = new ArmyUnit(options.name, options.alignment, options.damage, options.health, options.count, options.speed);
+            //Bqh razmenil options.count i options.speed w parametrite na unit i mi hvyrlqshe greshka
+            battleManagerData.armyUnits[unit.id] = unit;
+            battleManagerData.armyUnitsQuery.push(unit);
+            return unit;
+        },
+        getSpell(name, manaCost, effect) {
+            return new Spell(name, manaCost, effect);
+        },
+        addCommanders(...commanders) { // Parameters: arbitary number of Commanders
+            battleManagerData.commanderrs.push(...commanders); // Syzdavame si obekt battleManagerData izvyn obekta battlemanager za da 
+            //pazim informaciq
+            return this;
+        },
+        addArmyUnitTo(commanderName, armyUnit) {
+            battleManagerData.commanderrs
+                .find(c => c.name === commanderName)
+                .army.push(armyUnit);
+            return this;
+        },
+        addSpellsTo(commanderName, ...spells) {
+            battleManagerData.commanderrs
+                .find(c => c.name === commanderName)
+                .spellbook.push(...spells); // Kak se pushvat - kato 1 poziciq koqto e masiv li?
+            return this;
+        },
+        findCommanders(query) { // Dava 14 tochki v Bgcoder
+            return battleManagerData.commanderrs
+                .filterByProperty(query, 'name')
+                .filterByProperty(query, 'alignment')
+                .sort(x => x.name);
+        },
+        findArmyUnitById(id) {
+            return battleManagerData.armyUnits[id]; // ne dava nikakvi tochki nito v Bgcoder nito v lokalnite testove
+        },
+        findArmyUnits(query) {
+            return battleManagerData.armyUnitsQuery
+                .filterByProperty(query, 'id')
+                .filterByProperty(query, 'name')
+                .filterByProperty(query, 'alignment')
+                .sort((x, y) => {
+                    const cmp = y.speed - x.speed;
+                    if (cmp === 0) {
+                        return x.name.localeCompare(y.name); // NE GO RAZBIRAM
+                    }
+                    return cmp;
+                });
+        },
+        spellcast(casterName, spellName, targetUnitId) {
+
+            let Commander = battleManagerData.commanderrs.find(c => c.name === casterName);
+            if (typeof Commander === 'undefined') {
+                throw Error(`Can't cast with non-existant commander ${casterName}!`);
+            }
+            let Spell = Commander.spellbook.find(spell => spell.name === spellName);
+            if (typeof Spell === 'undefined') {
+                throw Error(`${casterName} doesn't know ${spellName}`);
+            }
+            if (Commander.mana < Spell.manaCost) {
+                throw Error(ERROR_MESSAGES.NOT_ENOUGH_MANA);
+            }
+            Commander.mana -= Spell.manaCost;
+
+            let unit = this.findArmyUnitById(targetUnitId);
+            if (typeof unit === 'undefined') {
+                throw Error(ERROR_MESSAGES.TARGET_NOT_FOUND);
+            }
+            Spell.effect(unit);
+            return this;
+        },
+        battle(attacker, defender) {
+
+            attacker.totalDamage = attacker.damage * attacker.count;
+            defender.totalHealth = defeneder.health * defender.count;
+            defender.totalHealth -= attacker.totalDamage;
+            defender.count = Math.ceil(defender.totalHealth / defender.health);
 
             return this;
         }
+
     };
-
-    const armyUnit = (function (parent) {
-        const armyUnit = Object.create(parent);
-
-        Object.defineProperties(armyUnit, {
-            id: {
-                get () {
-                    return this._id;
-                }
-            },
-            count: {
-                get () {
-                    return this._count;
-                },
-                set (value) {
-                    validator.validateRange(value, 0, Infinity, ERROR_MESSAGES.INVALID_COUNT);
-                    this._count = value;
-                }
-            },
-            speed: {
-                get () {
-                    return this._speed;
-                },
-                set (value) {
-                    validator.validateRange(value, 0, 100, ERROR_MESSAGES.INVALID_SPEED);
-                    this._speed = value;
-                }
-            },
-            damage: {
-                get () {
-                    return this._damage;
-                },
-                set (value) {
-                    validator.validateRange(value, 0, 100, ERROR_MESSAGES.INVALID_DAMAGE);
-                    this._damage = value;
-                }
-            },
-            health: {
-                get () {
-                    return this._health;
-                },
-                set (value) {
-                    validator.validateRange(value, 0, 200, ERROR_MESSAGES.INVALID_HEALTH);
-
-                    this._health = value;
-                }
-            },
-            init: {
-                value (name, alignment, damage, health, count, speed) {
-                    this.damage = damage;
-                    this.health = health;
-                    this.count = count;
-                    this.speed = speed;
-                    this._id = idGenerator.next().value;
-                    return parent.init.call(this, name, alignment);
-                }
-            }
-        });
-
-        return armyUnit;
-    } (unit));
-
-    const commanderProto = (function (parent) {
-        const commander = Object.create(parent);
-
-        Object.defineProperties(commander, {
-            mana: {
-                get () {
-                    return this._mana;
-                },
-                set (value) {
-                    validator.validateMana(value);
-                    this._mana = value;
-                }
-            },
-            init: {
-                value (name, alignment, mana) {
-                    this.mana = mana;
-                    this.army = [];
-                    this.spellbook = [];
-                    return parent.init.call(this, name, alignment);
-                }
-            }
-        });
-
-        return commander;
-    } (unit));
-
-    const battlemanager = (function () {
-
-        function meetsRequirements(object, requirements) {
-
-            for (const req in requirements) {
-                if (object[req] !== requirements[req]) {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        function compareStrings(first, second) {
-            return Number(first > second) - 0.5
-        }
-
-        function bySpeed(first, second) {
-            if (second.speed - first.speed) {
-                return second.speed - first.speed;
-            }
-
-            return compareStrings(first.name, second.name)
-        }
-
-        const commanders = [];
-
-        return {
-            getCommander(name, alignment, mana) {
-                return Object.create(commanderProto).init(name, alignment, mana);
-            },
-            getArmyUnit(options) {
-                const newUnit = Object.create(armyUnit).init(
-                    options.name,
-                    options.alignment,
-                    options.damage,
-                    options.health,
-                    options.count,
-                    options.speed
-                );
-
-                return newUnit;
-            },
-            getSpell(name, manaCost, effect) {
-                return Object.create(spell).init(name, manaCost, effect);
-            },
-            findCommanders(query) {
-                return commanders.filter(c => meetsRequirements(c, query)).sort((f, s) => compareStrings(f.name, s.name));
-            },
-            findArmyUnitById(id) {
-                for (const c of commanders) {
-                    const unit = c.army.find(u => u.id === id);
-
-                    if (unit) {
-                        return unit;
-                    }
-                }
-            },
-            findArmyUnits(query) {
-                const result = [];
-
-                for (const c of commanders) {
-                    const units = c.army.filter(u => meetsRequirements(u, query));
-                    if (units.length) {
-                        [].push.apply(result, units);
-                    }
-                }
-
-                return result.sort(bySpeed);
-            },
-            addCommanders(...newCommanders) {
-                [].push.apply(commanders, newCommanders);
-                return this;
-            },
-            addSpellsTo(commanderName, ...newSpells) {
-                const passedCommander = this.findCommanders({ name: commanderName })[0];
-
-                for(const spell of newSpells) {
-                    try {
-                        validator.validateName(spell.name);
-                        validator.validateMana(spell.manaCost);
-                        validator.validateEffect(spell.effect);
-                    } catch (error) {
-                        error.message = ERROR_MESSAGES.INVALID_SPELL_OBJECT;
-                        throw error;
-                    }
-                }
-
-                [].push.apply(passedCommander.spellbook, newSpells);
-
-                return this;
-            },
-            addArmyUnitTo(commanderName, newUnit) {
-                const passedCommander = this.findCommanders({ name: commanderName })[0];
-
-                passedCommander.army.push(newUnit);
-
-                return this;
-            },
-            spellcast(casterName, spellName, targetUnitId) {
-                const caster = this.findCommanders({ name: casterName })[0];
-
-                validator.validateNonNull(caster, 'Cannot cast with non-existant commander ' + casterName + '!');
-
-                const spell = caster.spellbook.find(s => s.name === spellName);
-
-                validator.validateNonNull(spell, casterName + ' does not know ' + spellName);
-                validator.validateCastManaCost(caster.mana, spell.manaCost);
-
-                const target = this.findArmyUnitById(targetUnitId);
-
-                validator.validateNonNull(target, ERROR_MESSAGES.TARGET_NOT_FOUND);
-
-                spell.effect(target);
-
-                caster.mana -= spell.manaCost;
-
-                return this;
-            },
-            battle(attacker, defender) {
-                
-                validator.validateBattleUnit(attacker, ERROR_MESSAGES.INVALID_BATTLE_PARTICIPANT);
-                validator.validateBattleUnit(defender, ERROR_MESSAGES.INVALID_BATTLE_PARTICIPANT);
-                const defenderCountAfterBattle = Math.ceil(((defender.health * defender.count) - (attacker.damage * attacker.count)) / defender.health);
-
-                if(defenderCountAfterBattle < 0) {
-                    defender.count = 0;
-                } else {
-                    defender.count = defenderCountAfterBattle;
-                }
-
-                return this;
-            }
-        };
-    } ());
 
     return battlemanager;
 }
-
 module.exports = solve;
+
+
+
+const battlemanager = solve();
+
+const cyki = battlemanager.getCommander('Cyki', 'good', 15),
+    koce = battlemanager.getCommander('Koce', 'good', 20);
+
+battlemanager.addCommanders(cyki, koce);
+console.log(cyki);
+
+battlemanager.addCommanders(battlemanager.getCommander('Darth Vader', 'evil', 50));
+
+const peter = battlemanager.getArmyUnit({
+    name: 'Peter',
+    alignment: 'neutral',
+    damage: 70,
+    health: 25,
+    speed: 50,
+    count: 10
+});
+
+const siths = battlemanager.getArmyUnit({
+    name: 'Sith',
+    alignment: 'evil',
+    damage: 60,
+    health: 25,
+    speed: 50,
+    count: 10
+});
+
+
+battlemanager.addArmyUnitTo('Darth Vader', siths);
+battlemanager.addArmyUnitTo('Darth Vader', peter);
+console.log(battlemanager.findArmyUnitById(3));
+
+battlemanager
+    .addCommanders(
+        battlemanager.getCommander('Cyki', 'evil', 50),
+        battlemanager.getCommander('Koce', 'evil', 50)
+    );
+
+const units = {
+    zerg: battlemanager.getArmyUnit({
+        name: 'Zerg',
+        alignment: 'evil',
+        damage: 50,
+        speed: 40,
+        health: 30,
+        count: 100
+    }),
+    programmers: battlemanager.getArmyUnit({
+        name: 'Devs',
+        alignment: 'good',
+        damage: 40,
+        speed: 30,
+        health: 30,
+        count: 130
+    }),
+    goodTrainers: battlemanager.getArmyUnit({
+        name: 'Trainers',
+        alignment: 'good',
+        damage: 80,
+        speed: 40,
+        health: 40,
+        count: 4
+    }),
+    evilTrainers: battlemanager.getArmyUnit({
+        name: 'Trainers',
+        alignment: 'evil',
+        damage: 90,
+        speed: 30,
+        health: 40,
+        count: 4
+    })
+};
+
+battlemanager
+    .addArmyUnitTo('Cyki', units.programmers)
+    .addArmyUnitTo('Cyki', units.goodTrainers)
+    .addArmyUnitTo('Koce', units.zerg);
+
+console.log(battlemanager.findArmyUnits({ name: 'Trainers', alignment: 'evil' }));
+
+
+// [ { name: 'Trainers', alignment: 'evil', ... } ]   
+console.log(battlemanager.findArmyUnits({ name: 'Trainers' }));
+
+/* [ { name: 'Trainers', alignment: 'good', ... }, 
+    { name: 'Trainers', alignment: 'evil', ... } ]  */
