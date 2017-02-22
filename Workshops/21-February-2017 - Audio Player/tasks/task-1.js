@@ -79,8 +79,15 @@ function solve() {
 
         }
         contains(playable, playlist) {
-            let pList = this._playlists.find(playlist);
-
+            let playListById = this.getPlaylistById(playlist.id);
+            if (playListById == null) {
+                return false;
+            }
+            let playableById = getPlayableById(playable.id);
+            if (playableById == null) {
+                return false;
+            }
+            return true;
         }
     }
 
